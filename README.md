@@ -42,24 +42,44 @@ For a while, my endpoints seemed to have not mapped by Spring MVC. Had to examin
 * Ingestion throughput and Aggregation Tasks collide for the same CPU cores. It would be better if these tasks are performed on different machines.
 
 *Various Improvements are listed in the code in TODO.
-* A Summary of them are
-  * Using Kafka or another high throughput message bus to write flow logs to improve durability
-* Using optimized index memory buffers to store raw flows in real time store
-* Periodically persist indices on local storageso that real-time nodes do not run out of memory; Make these indices queryable
-* Have Compaction tasks in background which collate these smaller persisted indices into Immutable segments.
-* Announce to Historical and other querying nodes that you are no longer serving older timelines
-* Using Columnar storage in all places for storage; Investigate Apache Arrow.
-* Use Dictionary encoding to reduce size of large strings src_app, dest_app, vpc_id etc
-* Use bitmap indices to be able to look at historical segments and query the counts for filters.
-* Monitor aggregation/Indexing takss to make sure they are not falling behind.
-* Investigate Delta Lake and Zorder indexing if you can read from cheap storage directly.
-* Consider first to process raw flows and enrich them via a Spark Streaming/Structured Streaming app. Helps with
-  * Enrichment of the flow with additional information
-  * Stream join and correlating two ends of the same flow to created correlated_flow
-  * Dealing with flows that may appear long after the time has elapsed ; For example hour 4 flow coming at hour 20.
-  * Structured Streaming can be even better. As long as we read replayable sources like Kafka and submit aggregates to idempotent sinks, we can potentially get real-time fault tolerant aggregates without we doing much work.
-  * Checkpointing and State Storage is taken care of by Structured Streaming.
-  * Fault Tolerance is taken care of by Structured Streaming
+* A Summary of them are below 
+* Common to all:
+* Using Kafka or another high throughput message bus to write flow logs to improve durability
+* Approach 1: Kafka+Our own Kafka Consumer Group+Delta Lake
+  * Using <src_app, dest_app, vpc_id, hour> as partition key and run multiple Kafka Consumers which form a Consumer Group.
+  * Then all messages with this particular tuple go to the same kafka consumer which can add them up
+  * If at least once smenatics are ok ( I think has some support for exactly once too now I think), then merge counts to a Delta Lake table in S3 partition by <hour> ; You will see hourly buckets in S3.
+  * Direct Read API's to go form Delta Lake table
+  * If an hourly partition is too big, we can subdivide into hour_<15 min intervals> or we can partition by other dimensions and use that as partition key for Delta Lake table.
+  * Investigate Delta Lake and Zorder indexing if you can read from cheap storage directly.
+* Approach 2: Kafka+Structured Streaming App+Delta Lake
+  * The approach is similar to above with a few differences
+  * Structured Streaming supports exactly once semantics using Write Ahead Log and State store
+  * The only expectation is that sources are replayable ( which Kafka is) and sinks support idempotent writes.
+  * Due to above, we can potentially get real-time fault tolerant aggregates without we doing much work.
+  * Structured Streaming supports additional features like 
+    * triggers
+    * watermarks
+    * window sizes
+    * late arrival policy
+    * allowing processing by event time etc.
+* Approach 3: Kafka+Druid 
+  * Delivers freshest data and slice and dice OLAP queries at the expense of operational complexity and throughput for batch workloads over large data
+  * Druid has multiple components- brokers, real-time nodes, hitorical nods, co ordinations nodes, zookeeper and S3/Deep storage.
+  * Using optimized index memory buffers to store raw flows in real time store
+  * Periodically persist indices on local storageso that real-time nodes do not run out of memory; Make these indices queryable
+  * Have Compaction tasks in background which collate these smaller persisted indices into Immutable segments.
+  * Announce to Historical and other querying nodes that you are no longer serving older timelines
+  * Using Columnar storage in all places for storage; Investigate Apache Arrow.
+  * Use Dictionary encoding to reduce size of large strings src_app, dest_app, vpc_id etc
+  * Use bitmap indices to be able to look at historical segments and query the counts for filters.
+  * Monitor aggregation/Indexing tasks to make sure they are not falling behind.
+
+* Possible Additional Step in the pipeline:
+  * Consider first to process raw flows and enrich them via a Spark Streaming/Structured Streaming app. Helps with
+    * Enrichment of the flow with additional information
+    * Stream join and correlating two ends of the same flow to created correlated_flow
+    * Dedup both ends of the flow within a window
 
 
 ## Getting Started

@@ -18,6 +18,11 @@ public class RealTimeStore {
     @Autowired
     private HistoricalStore historicalStore;
 
+    // @VisibleForTesting
+    public RealTimeStore(HistoricalStore historicalStore) {
+        this.historicalStore = historicalStore;
+    }
+
     // TODO Columnar format like Apache Arrow for in memory flows
     //  Queryable Buffer indices like in Druid
     public void addRawFlows(List<RawFlow> rawFlows) throws Exception {
@@ -69,7 +74,7 @@ public class RealTimeStore {
 
 
 
-    private String computeMD5Hash(AggregatedFlow aggFlow) throws Exception{
+    public static String computeMD5Hash(AggregatedFlow aggFlow) throws Exception{
         byte [] msg = aggFlow.toString().getBytes();
         byte[] hash = null;
         try
