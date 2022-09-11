@@ -3,7 +3,11 @@ package com.example.flowprocessing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class RawFlow {
 
@@ -15,13 +19,19 @@ public class RawFlow {
 
     @NotEmpty(message = "vpc_id must not be empty")
     String vpc_id;
-    // @NotEmpty(message = "bytes_tx must not be empty")
+
+    // @NotNull(message = "bytes_tx must not be empty")
+    @Min(value=0, message="positive number, min 0 ")
     long bytes_tx;
 
-    // @NotEmpty(message = "bytes_rx must not be empty")
+    // @NotNull(message = "bytes_rx must not be empty")
+    @Min(value=0, message="positive number, min 0 ")
     long bytes_rx;
 
-    // @NotEmpty(message = "hour must not be empty")
+    // @NotNull(message = "hour must not be empty")
+    // @NotBlank(message = "hour must not be empty")
+    @Min(value=0, message="hour: positive number, min 0 ")
+    @Max(value=23, message="hour: positive number, max 23")
     int hour;
 
     @JsonIgnore

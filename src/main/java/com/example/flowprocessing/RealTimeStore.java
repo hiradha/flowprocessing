@@ -29,7 +29,8 @@ public class RealTimeStore {
         // TODO Here you amy alternatively make the choice of dividing them into hourly buckets by putting them in a Map with hour as key
         //  It is a tradeoff between raw flow throughput vs aggregation task throughput
         //  In general, a generic ingestionspec can specify what aggregations we would like to perform during ingestion and what would be performed via Periodic RedIndexing or Aggregation tasks
-        //  Acheiving this balance is key
+        //  Also in production systems like Druid, this buffer is periodically persisted to disk (every 10 mins)but is still queryable. A new buffer accepts the events. Once the persist to local storage happens, the offset is commited into Kafka.
+        //  Also multiple Real Time Nodes can be added and read the same flow events kafka topic , thus helping recover form disk failures when a real-time node is lost.
         rawFlowQueue.addAll(rawFlows);
     }
 
@@ -41,6 +42,7 @@ public class RealTimeStore {
 
         // Synchronization below is unnecessary if there is only one scheduled task performing aggregation but may be necessary if there are more scheduled tasks
         // running on a ForkJoinPool
+        // In Production systems this has to process both the persisted indexes(older buffer contents), any local segments. All these are immutable.
         Map<Integer, Map<String, AggregatedFlow>> aggFlowsMap = new ConcurrentHashMap<>();
         int i=0;
         RawFlow rawFlow = null;

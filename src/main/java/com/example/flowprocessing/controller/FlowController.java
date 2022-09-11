@@ -6,6 +6,7 @@ import com.example.flowprocessing.AggregatedFlow;
 import com.example.flowprocessing.FlowService;
 import com.example.flowprocessing.RawFlow;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +17,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @RestController
-// @Validated // Enable when working
+@Validated // Enable when working
 public class FlowController {
 
    @Autowired
@@ -37,7 +38,7 @@ public class FlowController {
      */
 
     @PostMapping("/flows")
-    public void postRawFlow(@RequestBody List<@Valid RawFlow> rawFlows) throws Exception {
+    public void postRawFlow(@RequestBody @Valid List<@Valid RawFlow> rawFlows) throws Exception {
         flowService.submitRawFlows(rawFlows);
     }
 }

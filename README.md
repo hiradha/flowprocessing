@@ -13,6 +13,8 @@ Given limited time, this project showcases the following
   * Hourly Aggregates per src_app, dest_app, vpc_id
 * Design
   * Spring MVC based API REST API Design
+  * Added validations for RequestBody
+  * Added a unit test as an example.
   * Various Repository implementations to serve the API's. The first four perform aggregation on ingestion while the last one performs Delayed aggregation
     * Basic Flow Repository - no synchronization/no optimiziation
     * Hash Based Flow Repository - uses MD5 hash for efficient retreival
@@ -25,15 +27,19 @@ Given limited time, this project showcases the following
 
 ## Limitations
 * No pagination and cursoring on flows API
-* No Validation on API - Need to enable @Validation beans and wire MethodAnnotationProcessors to invoke Hibernate Bean Validation
+* Added some validations - however int validations seem to be not fully complete.
 * Only in memory persistence
 * Single Node only
 * No database indices for faster lookup for both historical
-* No tests for each component. Would use Mockito to unit test each component.
+* Need more unit tests for each class.
 * No durability of flow logs
 
 ## Challenges I faced
-For a while, my endpoints seemed to have not mapped by Spring MVC. Had to examine bean wiring.
+* For a while, my endpoints seemed to have not mapped by Spring MVC. Had to examine bean wiring.
+* Also if hour, bytes_tx and bytes_rx are missing (i.e. any long/int are missing form request body), the validation is not working using out of box Spring mvc validations.
+  * Seems to have hit this issue - https://stackoverflow.com/questions/41749278/spring-validation-of-integer-attribute
+  * May njeed custom validations to fix.
+* However min, max validations are working for integers.
 
 # Scalability Limitations and Future Improvements
 * The system can serve up to 500 requests/sec I think; The aggregation task processes aggregations every 5 seconds and I think can perform aggregation for 2500 raw flows in a couple of seconds.
