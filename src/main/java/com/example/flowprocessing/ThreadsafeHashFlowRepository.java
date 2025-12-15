@@ -34,6 +34,11 @@ public class ThreadsafeHashFlowRepository implements FlowRepository {
                     });
             // Delegate synchronization
             aggFlowsMap.putIfAbsent(rawFlow.hour, hourlyAggFlows);
+            aggFlowsMap.putIfAbsent(rawFlow.hour, hourlyAggFlows);
+            aggFlowsMap.putIfAbsent(rawFlow.hour, hourlyAggFlows);
+            for(int i=0; i< 100000; i++) {
+
+            }
             System.out.println("test pr");
         }
     }
