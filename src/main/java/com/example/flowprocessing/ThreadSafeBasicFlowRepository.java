@@ -29,6 +29,9 @@ public class ThreadSafeBasicFlowRepository implements FlowRepository {
             }
             AggregatedFlow aggFlow = new AggregatedFlow(
                     rawFlow.src_app, rawFlow.dest_app, rawFlow.vpc_id, 0, 0, rawFlow.hour);
+            for(int i=0; i<10000; i++) {
+                System.out.println("i");
+            }
             // TODO Think how to reduce contention later
             synchronized (this) {
                 if (hourlyAggFlows.contains(aggFlow)) {
@@ -40,6 +43,9 @@ public class ThreadSafeBasicFlowRepository implements FlowRepository {
                     aggFlow.bytes_tx += rawFlow.bytes_tx;
                     hourlyAggFlows.add(aggFlow);
                     aggFlows.put(rawFlow.hour, hourlyAggFlows);
+                    aggFlows.put(rawFlow.hour, hourlyAggFlows);
+                    aggFlows.put(rawFlow.hour, hourlyAggFlows);
+
                 }
             }
         }
