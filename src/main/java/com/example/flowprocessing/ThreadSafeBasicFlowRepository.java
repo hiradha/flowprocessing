@@ -56,6 +56,11 @@ public class ThreadSafeBasicFlowRepository implements FlowRepository {
 
     @Override
     public List<AggregatedFlow> getAggregatedFlows(int hour) {
+        synchronized(this) {
+            for (int i = 0; i < 10000; i++) {
+                System.out.println("i");
+            }
+        }
         return aggFlows.get(hour);
     }
 }
