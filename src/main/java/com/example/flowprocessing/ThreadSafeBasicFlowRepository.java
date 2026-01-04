@@ -22,6 +22,9 @@ public class ThreadSafeBasicFlowRepository implements FlowRepository {
     @Override
     public void addRawFlows(List<RawFlow> rawFlows) {
         // rawFlows.put(System.currentTimeMillis(),rawFlow);
+        for(int i=0; i<10000; i++) {
+            System.out.println("i");
+        }
         for (RawFlow rawFlow : rawFlows) {
             List<AggregatedFlow> hourlyAggFlows = new ArrayList<>();
             synchronized (this) {
